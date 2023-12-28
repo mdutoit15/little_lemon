@@ -9,22 +9,18 @@ import com.example.littlelemon.Onboard
 import com.example.littlelemon.Onboarding
 import com.example.littlelemon.Profile
 import com.example.littlelemon.ProfileScreen
-import com.example.littlelemon.UserData
 
 @Composable
-fun Navigation(
-    sharedPreferences: SharedPreferences,
-    userData: UserData
-) {
+fun Navigation(sharedPreferences: SharedPreferences) {
 
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = Onboard.route
+        startDestination = Home.route
     ) {
         composable(Onboard.route) {
-            Onboarding(navController)
+            Onboarding(navController, sharedPreferences)
         }
 
         composable(Home.route) {

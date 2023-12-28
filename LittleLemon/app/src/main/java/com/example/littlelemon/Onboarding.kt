@@ -1,8 +1,6 @@
 package com.example.littlelemon
 
-import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,19 +25,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @Composable
 fun Onboarding(
-    navController: NavController
+    navController: NavController,
+    sharedPreferences: SharedPreferences,
     ) {
     val context = LocalContext.current
-
-    val sharedPreferences = context.getSharedPreferences(
-        "UserData", Context.MODE_PRIVATE)
 
     val userName = remember {
         mutableStateOf(TextFieldValue(""))
@@ -53,9 +47,6 @@ fun Onboarding(
     val userEmail = remember {
         mutableStateOf(TextFieldValue(""))
     }
-
-
-
 
     val darkGreen = Color(0xFF495E57)
     val yellow = Color(0xFFF4CE14)
@@ -156,7 +147,7 @@ fun Onboarding(
                         userEmail.value.text,
                         sharedPreferences)
 
-                    navController.navigate(Profile.route)
+                    navController.navigate(Home.route)
 
                     Toast.makeText(context, "Registered", Toast.LENGTH_LONG).show()
                 }
