@@ -1,5 +1,6 @@
 package com.example.littlelemon
 
+import android.view.MenuItem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,13 +14,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +39,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -47,11 +52,11 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(it)
-            )
-            Column {
-                HeroScreen()
-                MenuBar()
-                MenuCard()
+            ){
+                Column {
+                    HeroScreen()
+                    MenuBar()
+                }
             }
         }
     }
@@ -75,9 +80,10 @@ fun TopAppBar(navController: NavController) {
                 navController.navigate(Profile.route)
             },
             modifier = Modifier
-                .align(Alignment.CenterEnd)
                 .height(60.dp)
-                .padding(top = 5.dp, bottom = 5.dp, end = 10.dp)
+                .fillMaxWidth(.22f)
+                .align(Alignment.CenterEnd)
+                .padding(start = 5.dp, top = 5.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.profile),
@@ -90,9 +96,10 @@ fun TopAppBar(navController: NavController) {
 
 @Composable
 fun HeroScreen() {
-    val searchBar = remember {
+    val searchPhrase = remember {
         mutableStateOf(TextFieldValue(""))
     }
+
     val darkGreen = Color(0xFF495E57)
 
     Column(
@@ -161,41 +168,36 @@ fun HeroScreen() {
                         .border(
                             width = 2.dp,
                             color = Color(0xFFF4CE14),
-
-
-                            )
+                        )
                 )
             }
+            TextField(
+                value = searchPhrase.value,
+                onValueChange = { searchPhrase.value = it },
+                placeholder = {
+                    Text(
+                        text = "Search"
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = ""
+                    )
+                },
+                modifier = Modifier
+                    .height(70.dp)
+                    .width(340.dp)
+                    .padding(top = 20.dp, start = 5.dp, end = 5.dp)
+            )
         }
-        TextField(
-            value = searchBar.value,
-            onValueChange = { searchBar.value = it },
-            label = {
-                Text(
-                    text = "Search",
-                    color = Color.White
-                )
-            },
-            modifier = Modifier
-                .height(70.dp)
-                .width(340.dp)
-                .padding(
-                    top = 20.dp,
-                    start = 5.dp,
-                    end = 5.dp
-                )
-                .border(
-                    width = 2.dp,
-                    color = Color(0xFFFFFFFF),
-                    shape = RoundedCornerShape(size = 16.dp)
-                )
-        )
     }
 }
 
 @Composable
 fun MenuBar() {
     val scrollState = rememberScrollState()
+
 
     Column {
         Text(
@@ -214,10 +216,10 @@ fun MenuBar() {
                 .align(Alignment.CenterHorizontally)
         ) {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {},
 
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFFD9D9D9)
+                    contentColor = Color(0xFFD9D9D9)
                 ),
 
                 modifier = Modifier
@@ -232,9 +234,9 @@ fun MenuBar() {
                 )
             }
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {},
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFFD9D9D9)
+                   contentColor = Color(0xFFD9D9D9)
                 ),
                 modifier = Modifier
                     .padding(
@@ -246,9 +248,9 @@ fun MenuBar() {
                 )
             }
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {},
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFFD9D9D9)
+                    contentColor = Color(0xFFD9D9D9)
                 ),
                 modifier = Modifier
                     .padding(
@@ -260,9 +262,9 @@ fun MenuBar() {
                 )
             }
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {},
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFFD9D9D9)
+                    contentColor = Color(0xFFD9D9D9)
                 ),
                 modifier = Modifier
                     .padding(
@@ -277,52 +279,52 @@ fun MenuBar() {
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MenuCard() {
+fun MenuCard(menuItem: MenuItemNetwork) {
     Column(
         modifier = Modifier
-            .width(380.dp)
             .padding(10.dp)
     ) {
         Text(
-            text = "Main Title",
+            text = menuItem.title,
             style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.karla_regular)),
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Black
-            ),
-            modifier = Modifier
-                .width(240.dp)
+                fontFamily = FontFamily(Font(R.font.karla_regular)),
+                fontWeight = FontWeight.Bold
+            )
         )
-        Row {
-            Column {
+        Row(
+            modifier = Modifier
+                .height(70.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .width(250.dp)
+            ) {
                 Text(
-                    text = "Description",
+                    text = menuItem.description,
                     style = TextStyle(
+                        fontSize = 15.sp,
                         fontFamily = FontFamily(Font(R.font.karla_regular)),
-                        fontSize = 15.sp
-                    ),
-                    modifier = Modifier
-                        .width(260.dp)
+                    )
                 )
                 Text(
-                    text = "Price",
+                    text = "${menuItem.price}",
                     style = TextStyle(
+                        fontSize = 15.sp,
                         fontFamily = FontFamily(Font(R.font.karla_regular)),
-                        fontSize = 15.sp
-                    ),
-                    modifier = Modifier
-                        .width(260.dp)
+                    )
                 )
             }
-
-            Image(
-                painter = painterResource(R.drawable.bruschetta),
-                contentDescription = "Dish Image",
+            GlideImage(
+                model = menuItem.image,
+                contentDescription = "Image",
                 modifier = Modifier
+                    .align(Alignment.CenterVertically)
                     .width(100.dp)
                     .height(100.dp),
-                contentScale = ContentScale.FillHeight
+                contentScale = ContentScale.FillBounds
             )
         }
     }
