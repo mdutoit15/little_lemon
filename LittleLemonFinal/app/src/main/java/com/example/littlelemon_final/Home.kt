@@ -93,10 +93,6 @@ fun TopAppBar(navController: NavController) {
 
 @Composable
 fun HeroScreen() {
-    val searchPhrase = remember {
-        mutableStateOf(TextFieldValue(""))
-    }
-
     val darkGreen = Color(0xFF495E57)
 
     Column(
@@ -168,6 +164,11 @@ fun HeroScreen() {
                         )
                 )
             }
+
+            val searchPhrase = remember {
+                mutableStateOf(TextFieldValue(""))
+            }
+
             TextField(
                 value = searchPhrase.value,
                 onValueChange = { searchPhrase.value = it },
@@ -195,6 +196,7 @@ fun HeroScreen() {
 fun MenuBar() {
     val scrollState = rememberScrollState()
 
+    val menuDatabase : List<MenuItemNetwork>
 
     Column {
         Text(
