@@ -4,12 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-class MenuNetworkData(
-    @SerialName("menu")
-    var menu: List<MenuItemNetwork>
-)
-
-@Serializable
 data class MenuItemNetwork(
     @SerialName("id")
     var id: Int,
@@ -23,4 +17,19 @@ data class MenuItemNetwork(
     var image: String,
     @SerialName("category")
     var category: String
+){
+    fun toMenuRoom() = MenuItemRoom(
+        id,
+        title,
+        description,
+        price,
+        image,
+        category
+    )
+}
+
+@Serializable
+class MenuNetworkData(
+    @SerialName("menu")
+    var menu: List<MenuItemNetwork>
 )

@@ -3,6 +3,7 @@ package com.example.littlelemon_final11
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,13 +40,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.bumptech.glide.Glide
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 
 @Composable
 fun HomeScreen(navController: NavController) {
-    val menuItems by remember {
-        mutableStateOf(emptyList<MenuItemNetwork>())
+    val menuItem = remember {
+        mutableListOf<MenuItemNetwork>()
     }
 
     Column {
@@ -59,7 +62,7 @@ fun HomeScreen(navController: NavController) {
                 Column {
                     HeroScreen()
                     MenuBar()
-                    MenuCard(menuItems)
+                    LazyMenu(menuItem)
                 }
             }
         }
@@ -123,7 +126,10 @@ fun HeroScreen() {
             )
 
             Row {
-                Column {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                ) {
                     Text(
                         text = "Chicago",
                         style = TextStyle(
@@ -157,6 +163,7 @@ fun HeroScreen() {
                     contentDescription = "Hero Image",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
+                        .fillMaxWidth(0.9f)
                         .width(130.dp)
                         .height(155.dp)
                         .padding(start = 10.dp)
@@ -166,6 +173,7 @@ fun HeroScreen() {
                         )
                 )
             }
+
             var searchPhrase by remember {
                 mutableStateOf("")
             }
@@ -272,13 +280,14 @@ fun MenuBar() {
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun MenuCard(menuItems: List<MenuItemNetwork>) {
+fun MenuCard(menuItem: MenuItemNetwork) {
     Card(
         modifier = Modifier
+            .fillMaxHeight(0.5f)
             .padding(10.dp)
     ) {
         Column {
-            for (menuItem in menuItems) {
+
                 Row(
                     modifier = Modifier
                         .padding(10.dp)
@@ -308,10 +317,19 @@ fun MenuCard(menuItems: List<MenuItemNetwork>) {
                     }
                     GlideImage(
                         model = menuItem.image,
-                        contentDescription = "Picture of meal"
+                        contentDescription = "Greek Salad"
                     )
                 }
-            }
+
+        }
+    }
+}
+
+@Composable
+fun LazyMenu(menu: List<MenuItemNetwork>) {
+    LazyColumn {
+        items(menu) {menuItem ->
+            MenuCard(menuItem)
         }
     }
 }
