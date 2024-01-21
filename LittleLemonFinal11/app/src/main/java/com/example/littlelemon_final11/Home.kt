@@ -3,6 +3,7 @@ package com.example.littlelemon_final11
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,18 +14,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,33 +41,103 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.room.Room
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.littlelemon_final11.CategoryNames.DEFAULT_CATEGORY
+import com.example.littlelemon_final11.CategoryNames.DESSERTS_CATEGORY
+import com.example.littlelemon_final11.CategoryNames.MAINS_CATEGORY
+import com.example.littlelemon_final11.CategoryNames.SALADS_CATEGORY
+import com.example.littlelemon_final11.CategoryNames.STARTERS_CATEGORY
 
 @Composable
 fun HomeScreen(navController: NavController) {
+
+    val context = LocalContext.current
+
+    val database by lazy {
+        Room.databaseBuilder(
+            context.applicationContext,
+            AppData::class.java, "LittleLemonDatabase"
+        ).build()
+    }
+
+    val databaseMenuItems by database
+        .menuDao()
+        .getAllItems().
+        observeAsState(emptyList())
+
+    val orderMenuItems by remember {
+        mutableStateOf(false)
+    }
+
+    val searchPhrase by remember {
+        mutableStateOf("")
+    }
+
+    var categorySelected by remember {
+        mutableStateOf("")
+    }
+
+    var menuItem =
+        if (orderMenuItems) databaseMenuItems
+            .sortedBy {
+                it.title
+            } else databaseMenuItems
+
+
     Column {
         Scaffold(topBar = {
             TopAppBar(navController)
         }) {
-            Box(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight(0.9f)
                     .padding(it)
             ){
-                Column {
-                    HeroScreen()
-                    MenuBar()
-                    MenuCard()
+                item {
+                    HeroScreen(selectPhrase = { category ->
+                        categorySelected = category
+                    })
+
+                    MenuBar(onItemClick = { category ->
+                        categorySelected = category
+                    })
                 }
+
+                if (searchPhrase.isNotEmpty()) {
+                    menuItem = databaseMenuItems.filter {
+                        it.title.contains(
+                            searchPhrase,
+                            ignoreCase = true
+                        )
+                    }
+                }
+
+                if (categorySelected.isNotEmpty()) {
+                    menuItem = if (categorySelected == DEFAULT_CATEGORY) {
+                        databaseMenuItems.sortedBy { it.id }
+                    } else {
+                        databaseMenuItems.filter {
+                            it.category.contains(
+                                categorySelected,
+                                ignoreCase = true
+                            )
+                        }
+                    }
+                }
+
+                this@LazyColumn.menuCard(menuItem = menuItem)
             }
         }
     }
@@ -99,8 +177,12 @@ fun TopAppBar(navController: NavController) {
 }
 
 @Composable
-fun HeroScreen() {
+fun HeroScreen(selectPhrase: (String) -> Unit) {
     val darkGreen = Color(0xFF495E57)
+
+    var searchPhrase by remember {
+        mutableStateOf("")
+    }
 
     Column(
         modifier = Modifier
@@ -174,10 +256,6 @@ fun HeroScreen() {
                 )
             }
 
-            var searchPhrase by remember {
-                mutableStateOf("")
-            }
-
             TextField(
                 value = searchPhrase,
                 onValueChange = {
@@ -192,107 +270,66 @@ fun HeroScreen() {
             )
         }
     }
+    if (searchPhrase.isNotEmpty())
+        selectPhrase(searchPhrase)
 }
 
 @Composable
-fun MenuBar() {
-    val scrollState = rememberScrollState()
+fun MenuBar(onItemClick: (String) -> Unit) {
+    val category = listOf(
+        STARTERS_CATEGORY, MAINS_CATEGORY, DESSERTS_CATEGORY, SALADS_CATEGORY
+    )
 
     Column(
         modifier = Modifier
-            .fillMaxHeight(0.3f)
+            .padding(8.dp)
     ) {
         Text(
             text = "Order for Delivery:",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .padding(10.dp)
+                .padding(
+                    start = 10.dp,
+                    bottom = 10.dp
+                )
         )
-        Row(
-            modifier = Modifier
-                .horizontalScroll(scrollState)
-                .align(Alignment.CenterHorizontally)
-        ) {
-            Button(
-                onClick = {},
-
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFAFAFAF)
-                ),
-
-                modifier = Modifier
-                    .padding(
-                        start = 10.dp,
-                        end = 10.dp
+        LazyRow {
+            items(category) {categories ->
+                Card(
+                    modifier = Modifier
+                        .clickable { onItemClick(categories) }
+                        .padding(
+                            start = 10.dp,
+                            end = 10.dp
+                        ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFEDEFEE)
+                    ),
+                ) {
+                    Text(
+                        text = categories,
+                        textAlign = TextAlign.Center,
+                        color = Color(0xFFAFAFAF),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(10.dp)
                     )
-
-            ) {
-                Text(
-                    text = "Starters"
-                )
-            }
-            Button(
-                onClick = {},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFAFAFAF)
-                ),
-                modifier = Modifier
-                    .padding(
-                        end = 10.dp
-                    )
-            ) {
-                Text(
-                    text = "Mains"
-                )
-            }
-            Button(
-                onClick = {},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFAFAFAF)
-                ),
-                modifier = Modifier
-                    .padding(
-                        end = 10.dp
-                    )
-            ) {
-                Text(
-                    text = "Desserts"
-                )
-            }
-            Button(
-                onClick = {},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFAFAFAF)
-                ),
-                modifier = Modifier
-                    .padding(
-                        end = 10.dp
-                    )
-            ) {
-                Text(
-                    text = "Sides"
-                )
+                }
             }
         }
     }
 }
 
-@Composable
-fun MenuCard() {
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .verticalScroll(scrollState)
-    ) {
-
-        Card(
-            modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .padding(10.dp)
-        ) {
-            Column {
+@OptIn(ExperimentalGlideComposeApi::class)
+fun LazyListScope.menuCard(menuItem: List<MenuItemRoom>) {
+    items(menuItem) { menu ->
+        Column {
+            Card(
+                modifier = Modifier
+                    .fillMaxHeight(0.5f)
+                    .padding(10.dp),
+            ) {
                 Row(
                     modifier = Modifier
                         .padding(10.dp)
@@ -302,211 +339,38 @@ fun MenuCard() {
                             .width(250.dp)
                     ) {
                         Text(
-                            text = "Greek Salad",
+                            text = menu.title,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "The famous greek salad of crispy lettuce, peppers, olives, our Chicago.",
+                            text = menu.description,
                             fontSize = 16.sp,
                             maxLines = 2,
                             modifier = Modifier
+                                .fillMaxWidth(0.7f)
                                 .padding(top = 5.dp)
                         )
                         Text(
-                            text = "$10.00",
+                            text = "%.2f".format(menu.price),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier
                                 .padding(top = 5.dp)
                         )
                     }
-                    Image(
-                        painter = painterResource(id = R.drawable.greek_salad),
+                    GlideImage(
+                        model = menu.image,
                         contentDescription = "Greek Salad",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(100.dp)
                     )
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .padding(10.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                ) {
-                    Column(
+                    Divider(
+                        color = Color(0xFFFBDABB),
+                        thickness = 2.dp,
                         modifier = Modifier
-                            .width(250.dp)
-                    ) {
-                        Text(
-                            text = "Lemon Desert",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Traditional homemade Italian Lemon Ricotta Cake.",
-                            fontSize = 16.sp,
-                            maxLines = 2,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                        Text(
-                            text = "$10.00",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                    }
-                    Image(
-                        painter = painterResource(id = R.drawable.lemon_dessert),
-                        contentDescription = "Lemon Desert",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
-                    )
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .padding(10.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(250.dp)
-                    ) {
-                        Text(
-                            text = "Grilled Fish",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Our Bruschetta is made from grilled bread that has been smeared with garlic and seasoned with salt and olive oil.",
-                            fontSize = 16.sp,
-                            maxLines = 2,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                        Text(
-                            text = "$10.00",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                    }
-                    Image(
-                        painter = painterResource(id = R.drawable.grilled_fish),
-                        contentDescription = "Grilled Fish",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
-                    )
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .padding(10.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(250.dp)
-                    ) {
-                        Text(
-                            text = "Pasta",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Penne with fried aubergines, cherry tomatoes, tomato sauce, fresh chili, garlic, basil & salted ricotta cheese.",
-                            fontSize = 16.sp,
-                            maxLines = 2,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                        Text(
-                            text = "$10.00",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                    }
-                    Image(
-                        painter = painterResource(id = R.drawable.pasta),
-                        contentDescription = "Pasta",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
-                    )
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxHeight(0.5f)
-                .padding(10.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .width(250.dp)
-                    ) {
-                        Text(
-                            text = "Bruschetta",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Oven-baked bruschetta stuffed with tomatoes and herbs.",
-                            fontSize = 16.sp,
-                            maxLines = 2,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                        Text(
-                            text = "$10.00",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .padding(top = 5.dp)
-                        )
-                    }
-                    Image(
-                        painter = painterResource(id = R.drawable.bruschetta),
-                        contentDescription = "Bruschetta",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(100.dp)
+                            .padding(top = 10.dp)
                     )
                 }
             }
