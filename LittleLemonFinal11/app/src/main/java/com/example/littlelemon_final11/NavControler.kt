@@ -13,7 +13,7 @@ fun Navigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Home.route
+        startDestination = Onboard.route
     ) {
         composable(Onboard.route) {
             Onboarding(navController)
