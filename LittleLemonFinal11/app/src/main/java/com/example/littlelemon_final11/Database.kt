@@ -11,12 +11,12 @@ import androidx.room.RoomDatabase
 
 @Entity
 data class MenuItemRoom(
-    @PrimaryKey var id: Int,
-    var title: String,
-    var description: String,
-    var price: Double,
-    var image: String,
-    var category: String
+    @PrimaryKey val id: Int,
+    val title: String,
+    val description: String,
+    val price: String,
+    val image: String,
+    val category: String
 )
 
 @Dao
