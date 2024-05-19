@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">M - Little Lemon</string>
+    <string name="hero_title">Little Lemon</string>
+    <string name="hero_place">Chicago</string>
+    <string name="hero_info">We are a family owned Mediterranean restaurant, focused on traditional recipes served with a modern twist.</string>
+    <string name="dish_order">Order for Delivery</string>
+</resources>
